@@ -1677,22 +1677,24 @@ namespace JulMarAtapi
         {
             if (NewCall != null)
             {
-                Privilege priv = (callPrivileges == NativeMethods.LINECALLPRIVILEGE_NONE) ? Privilege.None :
-                    (callPrivileges == NativeMethods.LINECALLPRIVILEGE_MONITOR) ? Privilege.Monitor : Privilege.Owner;
-                foreach (EventHandler<NewCallEventArgs> nc in NewCall.GetInvocationList())
+                Privilege priv = callPrivileges switch 
                 {
-                    nc.BeginInvoke(this, new NewCallEventArgs(call, priv),
-                        delegate(IAsyncResult ar) 
+                    NativeMethods.LINECALLPRIVILEGE_NONE => Privilege.None,
+                    NativeMethods.LINECALLPRIVILEGE_MONITOR => Privilege.Monitor,
+                    _ => Privilege.Owner
+                };
+
+                foreach(EventHandler<NewCallEventArgs> nc in NewCall.GetInvocationList().Cast<EventHandler<NewCallEventArgs>>()) 
+                {
+                    Task.Run(() =>
+                    {
+                        try 
                         {
-                            try
-                            {
-                                var nce = (EventHandler<NewCallEventArgs>)ar.AsyncState;
-                                nce.EndInvoke(ar);
-                            }
-                            catch
-                            {
-                            }
-                        }, nc);
+                            nc.Invoke(this, new NewCallEventArgs(call, priv));
+                        } 
+                        catch {
+                        }
+                    });
                 }
             }
         }

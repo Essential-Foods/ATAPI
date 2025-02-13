@@ -65,8 +65,14 @@ namespace JulMarAtapi
             Result = resultCode;
             _timeStarted.Stop();
             _asyncWaitHandle.Set();
-            if (_callback != null)
-                _callback.BeginInvoke(this, ar => _callback.EndInvoke(ar), null);
+            if(_callback != null) {
+                Task.Run(() => {
+                    try {
+                        _callback(this);
+                    } catch {
+                    }
+                });
+            }
         }
 
         /// <summary>
