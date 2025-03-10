@@ -348,7 +348,7 @@ namespace JulMarAtapi
                 NativeMethods.STRINGFORMAT_UNICODE));
         }
 
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             Shutdown();
         }
